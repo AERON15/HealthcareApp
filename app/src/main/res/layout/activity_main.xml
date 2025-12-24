@@ -15,12 +15,13 @@
         android:layout_marginBottom="8dp"/>
 
     <!-- This will be our handwriting canvas -->
+
     <com.example.healthcareapp.HandwritingView
         android:id="@+id/handwritingView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#EEEEEE"/>
+        android:background="#EEEEEE" />
 
     <Button
         android:id="@+id/convertButton"
