@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             recognizeRunnable = this::recognizeInk;
-            handler.postDelayed(recognizeRunnable, 500); // debounce
+            handler.postDelayed(recognizeRunnable, 850); // debounce
         });
     }
 

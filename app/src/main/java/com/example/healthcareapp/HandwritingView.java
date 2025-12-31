@@ -20,6 +20,9 @@ public class HandwritingView extends View {
     private Path path = new Path();
     private Paint paint = new Paint();
 
+    private float lastX, lastY;
+    private static final float TOUCH_TOLERANCE = 4f;
+
     // ===== Listener =====
     public interface OnInkChangedListener {
         void onInkChanged();
@@ -34,12 +37,17 @@ public class HandwritingView extends View {
     public HandwritingView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
+        //settings
         paint.setAntiAlias(true);
-        paint.setStrokeWidth(8f);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(0xFF000000);
+        paint.setDither(true);
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setFilterBitmap(true);
+
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(8f); // thickness of the stroke
+        paint.setColor(0xFF000000);
+
     }
 
     @Override
@@ -57,17 +65,37 @@ public class HandwritingView extends View {
 
             case MotionEvent.ACTION_DOWN:
                 path.moveTo(x, y);
+                lastX = x;
+                lastY = y;
+
                 strokeBuilder = Ink.Stroke.builder();
                 strokeBuilder.addPoint(Ink.Point.create(x, y, time));
                 return true;
 
             case MotionEvent.ACTION_MOVE:
-                path.lineTo(x, y);
-                strokeBuilder.addPoint(Ink.Point.create(x, y, time));
-                notifyInkChanged();
+                float dx = Math.abs(x - lastX);
+                float dy = Math.abs(y - lastY);
+
+                if (dx >= TOUCH_TOLERANCE || dy >= TOUCH_TOLERANCE) {
+
+                    float velocity = dx + dy;
+                    float factor = velocity < 10 ? 0.7f : 0.3f;
+
+                    float cx = lastX + (x - lastX) * factor;
+                    float cy = lastY + (y - lastY) * factor;
+
+                    path.quadTo(lastX, lastY, cx, cy);
+
+                    lastX = x;
+                    lastY = y;
+
+                    strokeBuilder.addPoint(Ink.Point.create(x, y, time));
+                    notifyInkChanged();
+                }
                 break;
 
             case MotionEvent.ACTION_UP:
+                path.lineTo(x, y);
                 strokeBuilder.addPoint(Ink.Point.create(x, y, time));
                 inkBuilder.addStroke(strokeBuilder.build());
                 notifyInkChanged();
